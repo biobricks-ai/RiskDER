@@ -1,0 +1,26 @@
+# Brick DVC stages
+# See https://dvc.org/doc/user-guide/project-structure/dvcyaml-files#pipelines-files-dvcyaml
+
+# The complete process can be executed using:
+# dvc repro
+# If you want to force redoing the process use 
+# dvc repro -f
+# Individual stage can be executed using: 
+# dvc repro <stage>
+
+stages:
+
+  bingsearch:
+    cmd: python stages/01_bingquery.py
+    outs:
+      - download/search_results.parquet:
+          persist: true
+  
+  download_pdfs:
+    cmd: python stages/02_download_pdf.py
+    deps:
+      - download/search_results.parquet
+    outs:
+      - brick/riskder.pdf:
+          persist: true
+      - brick/riskder.parquet

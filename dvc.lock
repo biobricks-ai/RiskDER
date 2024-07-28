@@ -1,0 +1,9 @@
+schema: '2.0'
+stages:
+  bingsearch:
+    cmd: python stages/01_bingquery.py
+    outs:
+    - path: download/search_results.parquet
+      hash: md5
+      md5: cbb02378c80cdefe3f2a9d8754aac6a9
+      size: 434703
