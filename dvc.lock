@@ -7,3 +7,20 @@ stages:
       hash: md5
       md5: cbb02378c80cdefe3f2a9d8754aac6a9
       size: 434703
+  download_pdfs:
+    cmd: python stages/02_download_pdf.py
+    deps:
+    - path: download/search_results.parquet
+      hash: md5
+      md5: cbb02378c80cdefe3f2a9d8754aac6a9
+      size: 434703
+    outs:
+    - path: brick/riskder.parquet
+      hash: md5
+      md5: 47ca58ef9790ace14d67662fa3d6ba76
+      size: 498859
+    - path: brick/riskder.pdf
+      hash: md5
+      md5: 555f872ce98d136793bd801edd7afd7f.dir
+      size: 2050153290
+      nfiles: 1809
