@@ -128,5 +128,5 @@ for path in tqdm(pdf_paths, total=len(pdf_paths), desc="Extracting testing resul
         continue
 
 
-aggdf.to_csv('extraction.csv')
+aggdf.to_csv('brick/extraction.csv')
 # endregion

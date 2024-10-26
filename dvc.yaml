@@ -24,3 +24,10 @@ stages:
       - brick/riskder.pdf:
           persist: true
       - brick/riskder.parquet
+  
+  extract_data:
+    cmd: python stages/03_data_extractor.py
+    deps:
+      - brick/riskder.pdf
+    outs:
+      - brick/extraction.parquet
