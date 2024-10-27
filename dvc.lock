@@ -24,3 +24,16 @@ stages:
       md5: 555f872ce98d136793bd801edd7afd7f.dir
       size: 2050153290
       nfiles: 1809
+  extract_data:
+    cmd: python stages/03_data_extractor.py
+    deps:
+    - path: brick/riskder.pdf
+      hash: md5
+      md5: 555f872ce98d136793bd801edd7afd7f.dir
+      size: 2050153290
+      nfiles: 1809
+    outs:
+    - path: brick/extraction.parquet
+      hash: md5
+      md5: 18a22e58f4ee7675398964d8573fe19a
+      size: 11356
