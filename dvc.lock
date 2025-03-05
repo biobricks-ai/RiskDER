@@ -37,3 +37,8 @@ stages:
       hash: md5
       md5: 18a22e58f4ee7675398964d8573fe19a
       size: 11356
+    - path: cache/03_data_extractor
+      hash: md5
+      md5: 69da48cddd1d8828bf8a47d9a94fec41.dir
+      size: 249816
+      nfiles: 3619

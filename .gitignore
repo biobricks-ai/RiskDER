@@ -4,3 +4,4 @@ logs
 /brick
 .env
 *.pyc
+/riskder.csv

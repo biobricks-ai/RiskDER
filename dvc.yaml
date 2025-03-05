@@ -31,3 +31,6 @@ stages:
       - brick/riskder.pdf
     outs:
       - brick/extraction.parquet
+      - cache/03_data_extractor:
+          persist: true
+
