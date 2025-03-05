@@ -8,7 +8,6 @@ import pandas as pd
 import hashlib
 import dotenv
 import openai
-from anthropic import Anthropic, HUMAN_PROMPT, AI_PROMPT
 
 dotenv.load_dotenv()
 client = openai.OpenAI()
@@ -59,7 +58,6 @@ df['thyroid_mentions'] = results
 total_mentions = sum(results)
 
 thyroid_df = df[df['thyroid_mentions'] > 0].sort_values('thyroid_mentions', ascending=False)
-thyroid_df.to_parquet('thyroid_mentions.parquet')
 print(f"Total thyroid mentions across all PDFs: {total_mentions}")
 # endregion
 
