@@ -16,6 +16,9 @@ client = openai.OpenAI()
 cachedir = pathlib.Path('cache/03_data_extractor')
 cachedir.mkdir(parents=True, exist_ok=True)
 
+outdir = pathlib.Path('brick')
+outdir.mkdir(parents=True, exist_ok=True)
+
 (cachedir / 'memo_search_pdf_for_thyroid').mkdir(parents=True, exist_ok=True)
 memory = Memory(cachedir / 'memo_search_pdf_for_thyroid', verbose=0)
 
@@ -58,6 +61,7 @@ df['thyroid_mentions'] = results
 total_mentions = sum(results)
 
 thyroid_df = df[df['thyroid_mentions'] > 0].sort_values('thyroid_mentions', ascending=False)
+thyroid_df.to_parquet(outdir / 'thyroid_mentions.parquet')
 print(f"Total thyroid mentions across all PDFs: {total_mentions}")
 # endregion
 
@@ -91,9 +95,10 @@ json_schema = {
     "strict": True
 }
 
-(cachedir / 'memo_extract_testing_results').mkdir(parents=True, exist_ok=True)
-memo_extract = Memory(cachedir / 'memo_extract_testing_results', verbose=0)
-@memo_extract.cache
+import concurrent.futures
+import stages.utils.simplecache as simplecache
+sc = simplecache.SimpleCache(cachedir / 'memo_extract_testing_results')
+@sc.cache
 def extract_testing_results(pdf_path):
 
     reader = PyPDF2.PdfReader(pdf_path)
@@ -101,7 +106,7 @@ def extract_testing_results(pdf_path):
 
     prompt = f"{HUMAN_PROMPT}Review this PDF and extract a table with the following columns: substance (the substance being tested), guideline (an identifier for the test being performed, if available, e.g., an OECD guideline number), test_description (a description of the test being performed), metric (could be LOAEL, NOAEL, or some other measurement of the substance in the test), value (the numeric outcome), and units (the units used in the metric). Format your response as a JSON object that conforms to the following schema:\n\n{json.dumps(json_schema, indent=2)}\n\nHere's the PDF content:\n\n{pdf_content}\n\n{AI_PROMPT}"
     completion = client.chat.completions.create(
-        model="gpt-4o-2024-08-06",
+        model="gpt-4o",
         messages=[
             {"role": "system", "content": "Extract the testing results information."},
             {"role": "user", "content": prompt},
@@ -113,18 +118,31 @@ def extract_testing_results(pdf_path):
         )
     return completion
     
-
+thyroid_df = pd.read_parquet(outdir / 'thyroid_mentions.parquet')
 aggdf = pd.DataFrame()
 pdf_paths = thyroid_df['pdf_path'].tolist()
-for path in tqdm(pdf_paths, total=len(pdf_paths), desc="Extracting testing results"):
+
+def process_pdf(path):
     try:
         completion = extract_testing_results(path)
         df = pd.DataFrame(json.loads(completion.choices[0].message.content)['table'])
-        aggdf = pd.concat([aggdf, df], ignore_index=True)
+        df['pdf_path'] = path
+        return df
     except Exception as e:
         print(f"Skipping broken PDF: {path}. Error: {str(e)}")
-        continue
+        return None
+    
+
+with concurrent.futures.ThreadPoolExecutor(max_workers=20) as executor:
+    results = list(tqdm(
+        executor.map(process_pdf, pdf_paths),
+        total=len(pdf_paths),
+        desc="Extracting testing results"
+    ))
+
+# Filter out None results and concatenate DataFrames
+aggdf = pd.concat([df for df in results if df is not None], ignore_index=True)
 
 
-aggdf.to_parquet('brick/extraction.parquet')
+aggdf.to_parquet(outdir / 'thyroid_testing_results.parquet')
 # endregion
