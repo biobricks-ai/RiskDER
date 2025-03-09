@@ -5,3 +5,4 @@ logs
 .env
 *.pyc
 /riskder.csv
+cache/
